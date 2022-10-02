@@ -8,31 +8,31 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * QuPath is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License 
+ *
+ * You should have received a copy of the GNU General Public License
  * along with QuPath.  If not, see <https://www.gnu.org/licenses/>.
  * #L%
  */
 
 /*********************************
  * This file is part of ImageCombinerWarpy ...
- * 
+ *
  * .. a QuPath extension based on the QuPath 'Interactive Image Alignment' tool
- *  
+ *
  * The ImageCombinerWarpy is thought as an experimental tool.
- * 
- * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ *
+ * It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * 
+ *
  * Note: This file is derived from QuPath Image Align Extension and was added to this project and modified by @phaub (Oct 2021).
  *
  * Peter Haub (@phaub), Oct 2021
- * 
+ *
  *********************************/
 package qupath.ext.imagecombinerwarpy;
 
@@ -61,17 +61,17 @@ import qupath.lib.io.GsonTools.SubTypeAdapterFactory;
  * Extension to make more experimental commands present in the GUI.
  */
 public class ImageCombinerWarpyExtension implements QuPathExtension, GitHubProject {
-	
+
 	private static Logger logger = LoggerFactory.getLogger(ImageCombinerWarpyExtension.class);
-	
+
 	private static boolean alreadyInstalled = false;
-	
+
 	private static Version minimumVersion = Version.parse("0.3.0-SNAPSHOT");
 
 	@SuppressWarnings("javadoc")
 	public class ExperimentalCommands {
-		
-		@ActionMenu("Analyze>Interactive image combiner warpy")
+
+		@ActionMenu("Extensions>Experimental>Interactive image combiner warpy")
 		@ActionDescription("Experimental command to interactively align and combine images using an Affine or Warpy transform. "
 				+ "This is currently not terribly useful in itself, but may be helpful as part of more complex scripting workflows.")
 		public final Action actionInteractiveImageCombinerWarpy;
@@ -80,23 +80,23 @@ public class ImageCombinerWarpyExtension implements QuPathExtension, GitHubProje
 			var interactiveImageCombinerWarpy = new InteractiveImageCombinerWarpyCommand(qupath);
 			actionInteractiveImageCombinerWarpy = qupath.createProjectAction(project -> interactiveImageCombinerWarpy.run());
 		}
-		
+
 	}
-	
-	
+
+
     @Override
     public void installExtension(QuPathGUI qupath) {
     	if (alreadyInstalled || !checkCompatibility())
 			return;
-		
-		try {			
-			
-			//RuntimeTypeAdapterFactory<ServerBuilder> typeAdapterFactory = (RuntimeTypeAdapterFactory<ServerBuilder>) ImageServers.getServerBuilderFactory();	        
+
+		try {
+
+			//RuntimeTypeAdapterFactory<ServerBuilder> typeAdapterFactory = (RuntimeTypeAdapterFactory<ServerBuilder>) ImageServers.getServerBuilderFactory();
 	        SubTypeAdapterFactory<ServerBuilder> typeAdapterFactory = (SubTypeAdapterFactory<ServerBuilder>) ImageServers.getServerBuilderFactory();
-	        		
+
 			typeAdapterFactory.registerSubtype(RealTransformImageServerBuilder.class, "realtransform");
 			typeAdapterFactory.registerSubtype(AffineTransformInterpolationImageServerBuilder.class, "transforminterpolate");
-			
+
 			GsonBuilder builder = GsonTools.getDefaultBuilder();
 
 			builder.registerTypeAdapter(AffineTransformInterpolationTypeAdapter.class, new AffineTransformInterpolationTypeAdapter());
@@ -105,12 +105,12 @@ public class ImageCombinerWarpyExtension implements QuPathExtension, GitHubProje
 
 			// Add ImageCombinerWarpy
 	    	qupath.installActions(ActionTools.getAnnotatedActions(new ExperimentalCommands(qupath)));
-	    	
+
 	    	alreadyInstalled = true;
-			
+
 		} catch (Throwable t) {
 			logger.debug("Unable to add ImageCombinerWarpy to menu", t);
-		}		
+		}
     }
 
     /**
@@ -130,7 +130,7 @@ public class ImageCombinerWarpyExtension implements QuPathExtension, GitHubProje
 				minimumVersion.getMajor(), minimumVersion.getMinor(), minimumVersion.getPatch());
 		return false;
 	}
-    
+
     @Override
     public String getName() {
         return "Image Combiner Warpy extension";
