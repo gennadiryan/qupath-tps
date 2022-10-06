@@ -319,8 +319,8 @@ public class AffineTransformServer extends AbstractTransformServer<AffineTransfo
             		// int xx = (int)((row2[x*2]-requestTransformed.getX())/downsample);
             		// int yy = (int)((row2[x*2+1]-requestTransformed.getY())/downsample);
 
-                t[0] = x;
-                t[1] = y;
+                t[0] = x * downsample + request.getX();
+                t[1] = y * downsample + request.getY();
                 transform2.transform(t, 0, t2, 0, 1);
                 int xx = (int)((t2[0] - requestTransformed.getX()) / downsample);
                 int yy = (int)((t2[1] - requestTransformed.getY()) / downsample);

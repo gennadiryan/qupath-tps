@@ -1,24 +1,3 @@
-/*-
- * #%L
- * This file is part of QuPath.
- * %%
- * Copyright (C) 2018 - 2020 QuPath developers, The University of Edinburgh
- * %%
- * QuPath is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * QuPath is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with QuPath.  If not, see <https://www.gnu.org/licenses/>.
- * #L%
- */
-
 package qupath.ext.imagecombinerwarpy.gui;
 
 import java.awt.geom.AffineTransform;
@@ -49,11 +28,12 @@ import qupath.ext.imagecombinerwarpy.gui.AbstractTransformServer;
 import qupath.ext.imagecombinerwarpy.gui.TPSTransform;
 
 
-public class RealTransformServer extends AbstractTransformServer<TPSTransform> {
+
+public class TPSTransformServer extends AbstractTransformServer<TPSTransform> {
     private ImageRegion region;
     private TPSTransform transform;
 
-    public RealTransformServer(final ImageServer<BufferedImage> server, TPSTransform transform) {
+    public TPSTransformServer(final ImageServer<BufferedImage> server, TPSTransform transform) {
       	super(server, transform);
       	// this.transformInverse = this.getTransform().inverse();
 
@@ -136,7 +116,8 @@ public class RealTransformServer extends AbstractTransformServer<TPSTransform> {
 				);
 				var imgOrig = wrappedServer.readBufferedImage(transformRequest);
 				var rasterOrig = imgOrig.getRaster();
-				var raster = rasterOrig.createCompatibleWritableRaster(w, h);
+				var raster = rasterOrig.createCompatibleWritableRaster(W, H);
+
 
 				int X, Y;
 				Object pixel = null;
@@ -144,8 +125,10 @@ public class RealTransformServer extends AbstractTransformServer<TPSTransform> {
 						for (int j = 0; j < H; ++j) {
 								X = (int) Math.floor((transform[i][j][0] - transformRequest.getX()) / downsample);
 								Y = (int) Math.floor((transform[i][j][1] - transformRequest.getY()) / downsample);
-								pixel = rasterOrig.getDataElements(X, Y, pixel);
-								raster.setDataElements(i, j, pixel);
+                if (0 <= X && X < rasterOrig.getWidth() && 0 <= Y && Y < rasterOrig.getHeight()) {
+                    pixel = rasterOrig.getDataElements(X, Y, pixel);
+                    raster.setDataElements(i, j, pixel);
+                }
 						}
 				}
 
@@ -231,13 +214,14 @@ public class RealTransformServer extends AbstractTransformServer<TPSTransform> {
         // return new BufferedImage(img.getColorModel(), raster, img.isAlphaPremultiplied(), null);
     }
 
+    @Override protected AbstractTransformServer.AbstractTransformServerBuilder createServerBuilder() { return null; }
 
-    @Override protected AbstractTransformServer<TPSTransform>.AbstractTransformServerBuilder<TPSTransform> createServerBuilder() {
-				return new AbstractTransformServer<TPSTransform>.AbstractTransformServerBuilder<TPSTransform>(this.getMetadata(), this.getWrappedServer().getBuilder(), this.getTransform()) {
-						@Override protected AbstractTransformServer<TPSTransform> buildOriginal() throws Exception {
-								return new RealTransformServer(this.builder.build(), this.transform);
-						}
-				};
-		}
+    // @Override protected AbstractTransformServer<TPSTransform>.AbstractTransformServerBuilder<TPSTransform> createServerBuilder() {
+		// 		return new AbstractTransformServer<TPSTransform>.AbstractTransformServerBuilder<TPSTransform>(this.getMetadata(), this.getWrappedServer().getBuilder(), this.getTransform()) {
+		// 				@Override protected AbstractTransformServer<TPSTransform> buildOriginal() throws Exception {
+		// 						return new TPSTransformServer(this.builder.build(), this.transform);
+		// 				}
+		// 		};
+		// }
 
 }
