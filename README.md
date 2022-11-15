@@ -2,7 +2,7 @@
 
 ## Updates
 
-This repo adds direct support for registering, viewing, and exporting images with non-linear deformation, specifically `ThinPlateSplineR2LogRSplineKernelTransform` (with support for more general RealTransforms in the pipeline), in QuPath. The restriction to BioFormats image servers, and to registering the image externally in ImageJ, is removed. This extension implements the registration fully in QuPath, by providing the landmark mappings to a live TPSTransformServer, meaning that any ImageServer can be sampled at the pixel level to visualize it under TPS deformation, and similarly overlaid, handled, and exported as any other ImageServer in QuPath.
+This repo adds direct support for registering, viewing, and exporting images with non-linear deformation, specifically `ThinPlateR2LogRSplineKernelTransform` (with support for more general RealTransforms in the pipeline), in QuPath. The restriction to BioFormats image servers, and to registering the image externally in ImageJ, is removed. This extension implements the registration fully in QuPath, by providing the landmark mappings to a live TPSTransformServer, meaning that any ImageServer can be sampled at the pixel level to visualize it under TPS deformation, and similarly overlaid, handled, and exported as any other ImageServer in QuPath.
 
 The repo depends upon the inspiration of the QuPath Warpy Extension (rest of their README below) and BigWarp, and functionally depends on imglib2 and jitk-tps.
 
