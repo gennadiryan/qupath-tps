@@ -34,27 +34,30 @@ public class TPSTransformServer extends AbstractTransformServer<TPSTransform> {
     private TPSTransform transform;
 
     public TPSTransformServer(final ImageServer<BufferedImage> server, TPSTransform transform) {
-      	super(server, transform);
-      	// this.transformInverse = this.getTransform().inverse();
+        this(server, transform, ImageRegion.createInstance((int) 0, (int) 0, (int) Math.ceil(server.getWidth()), (int) Math.ceil(server.getHeight()), 0, 0));
+    }
 
-      	// var boundsTransformed = this.getTransform().createTransformedShape(new Rectangle2D.Double(0, 0, server.getWidth(), server.getHeight())).getBounds2D();
-				var boundsTransformed = new Rectangle2D.Double(0, 0, server.getWidth(), server.getHeight()).getBounds2D();
+    public TPSTransformServer(final ImageServer<BufferedImage> server, TPSTransform transform, ImageRegion region) {
 
-    		// int minX = Math.max(0, (int)boundsTransformed.getMinX());
-    		// int maxX = Math.min(server.getWidth(), (int)Math.ceil(boundsTransformed.getMaxX()));
-    		// int minY = Math.max(0, (int)boundsTransformed.getMinY());
-    		// int maxY = Math.min(server.getHeight(), (int)Math.ceil(boundsTransformed.getMaxY()));
-    		// this.region = ImageRegion.createInstance(
-    		// 		minX, minY, maxX-minX, maxY-minY, 0, 0);
+        // var boundsTransformed = new Rectangle2D.Double(0, 0, server.getWidth(), server.getHeight()).getBounds2D();
+		// int minX = Math.max(0, (int)boundsTransformed.getMinX());
+		// int maxX = Math.min(server.getWidth(), (int)Math.ceil(boundsTransformed.getMaxX()));
+		// int minY = Math.max(0, (int)boundsTransformed.getMinY());
+		// int maxY = Math.min(server.getHeight(), (int)Math.ceil(boundsTransformed.getMaxY()));
+		// this.region = ImageRegion.createInstance(
+		// 		minX, minY, maxX-minX, maxY-minY, 0, 0);
 
-      	this.region = ImageRegion.createInstance(
-      			(int)boundsTransformed.getMinX(),
-      			(int)boundsTransformed.getMinY(),
-      			(int)Math.ceil(boundsTransformed.getWidth()),
-      			(int)Math.ceil(boundsTransformed.getHeight()), 0, 0);
+      	// this.region = ImageRegion.createInstance(
+      	// 		(int)boundsTransformed.getMinX(),
+      	// 		(int)boundsTransformed.getMinY(),
+      	// 		(int)Math.ceil(boundsTransformed.getWidth()),
+      	// 		(int)Math.ceil(boundsTransformed.getHeight()), 0, 0);
+
+        super(server, transform);
+        this.region = region;
 
       	var levelBuilder = new ImageServerMetadata.ImageResolutionLevel.Builder(region.getWidth(), region.getHeight());
-      	boolean fullServer = server.getWidth() == region.getWidth() && server.getHeight() == region.getHeight();
+      	// boolean fullServer = server.getWidth() == region.getWidth() && server.getHeight() == region.getHeight();
       	int i = 0;
       	do {
         		// var originalLevel = server.getMetadata().getLevel(i);
@@ -63,16 +66,17 @@ public class TPSTransformServer extends AbstractTransformServer<TPSTransform> {
         		// else
         		//     levelBuilder.addLevelByDownsample(originalLevel.getDownsample());
         		// i++;
-            levelBuilder.addLevel(server.getMetadata().getLevel(i));
+            // levelBuilder.addLevel(server.getMetadata().getLevel(i));
+            levelBuilder.addLevelByDownsample(server.getMetadata().getLevel(i).getDownsample());
             ++i;
       	} while (i < server.nResolutions() && region.getWidth() >= server.getMetadata().getPreferredTileWidth() && region.getHeight() >= server.getMetadata().getPreferredTileHeight());
 
       	// TODO: Apply AffineTransform to pixel sizes! Perhaps create a Shape or point and transform that?
       	var metadata = new ImageServerMetadata.Builder(server.getMetadata())
-      			.width(this.region.getWidth())
-      			.height(this.region.getHeight())
-      			.name(String.format("%s (%s)", server.getMetadata().getName(), this.getTransform().toString()))
-      			.levels(levelBuilder.build())
+  			.width(this.region.getWidth())
+  			.height(this.region.getHeight())
+  			.name(String.format("%s (%s)", server.getMetadata().getName(), this.getTransform().toString()))
+  			.levels(levelBuilder.build())
             .pixelSizeMicrons(1, 1).zSpacingMicrons(1) // optional
             .build();
 
@@ -81,60 +85,79 @@ public class TPSTransformServer extends AbstractTransformServer<TPSTransform> {
 
     }
 
+    public ImageRegion getRegion() {
+        return this.region;
+    }
+
 
     @Override public BufferedImage readBufferedImage(final RegionRequest request) throws IOException {
-        // return this.getWrappedServer().readBufferedImage(request);
+        double downsample = request.getDownsample();
+        int[][] bounds = new int[2][2];
+        bounds[0][0] = request.getX();
+        bounds[0][1] = request.getWidth();
+        bounds[1][0] = request.getY();
+        bounds[1][1] = request.getHeight();
 
+        int[][][] transform = this.getTransform().getTransformDownsampled(bounds, downsample);
+        for (int k = 0; k < 2; ++k) {
+            bounds[k][0] -= (int) downsample;
+            bounds[k][1] += (int) (2 * downsample);
+        }
 
-				int x = request.getX();
-				int y = request.getY();
-				int w = request.getWidth();
-				int h = request.getHeight();
-				double downsample = request.getDownsample();
+        var transformServer = this.getWrappedServer();
+        var transformRequest = RegionRequest.createInstance(
+            transformServer.getPath(),
+            downsample,
+            bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1],
+            request.getZ(),
+            request.getT()
+        );
+        var transformImg = transformServer.readBufferedImage(transformRequest);
+        var transformRaster = transformImg.getRaster();
+        var raster = transformRaster.createCompatibleWritableRaster(transform.length, transform[0].length);
 
-				int[][] bounds = new int[2][2];
-				bounds[0][0] = x;
-				bounds[0][1] = w;
-				bounds[1][0] = y;
-				bounds[1][1] = h;
-
-				var wrappedServer = this.getWrappedServer();
-				int[][][] transform = this.getTransform().getTransformDownsampled(bounds, downsample);
-				int W = transform.length;
-				int H = transform[0].length;
-
-				for (int k = 0; k < 2; ++k) {
-						bounds[k][0] = Math.max(bounds[k][0], 0);
-						bounds[k][1] = Math.min(bounds[k][1], k == 0 ? wrappedServer.getWidth() : wrappedServer.getHeight());
-				}
-				var transformRequest = RegionRequest.createInstance(
-						wrappedServer.getPath(),
-						downsample,
-						bounds[0][0], bounds[1][0], bounds[0][1], bounds[1][1],
-						request.getZ(),
-						request.getT()
-				);
-				var imgOrig = wrappedServer.readBufferedImage(transformRequest);
-				var rasterOrig = imgOrig.getRaster();
-				var raster = rasterOrig.createCompatibleWritableRaster(W, H);
-
-
-				int X, Y;
-				Object pixel = null;
-				for (int i = 0; i < W; ++i) {
-						for (int j = 0; j < H; ++j) {
-								X = (int) Math.floor((transform[i][j][0] - transformRequest.getX()) / downsample);
-								Y = (int) Math.floor((transform[i][j][1] - transformRequest.getY()) / downsample);
-                if (0 <= X && X < rasterOrig.getWidth() && 0 <= Y && Y < rasterOrig.getHeight()) {
-                    pixel = rasterOrig.getDataElements(X, Y, pixel);
+        int x, y;
+        Object pixel = null;
+        for (int i = 0; i < transform.length; ++i) {
+            for (int j = 0; j < transform[i].length; ++j) {
+                x = (int) Math.floor((transform[i][j][0] - transformRequest.getX()) / downsample);
+                y = (int) Math.floor((transform[i][j][1] - transformRequest.getY()) / downsample);
+                if (0 <= x && x < transformRaster.getWidth() && 0 <= y && y < transformRaster.getHeight()) {
+                    pixel = transformRaster.getDataElements(x, y, pixel);
                     raster.setDataElements(i, j, pixel);
                 }
-						}
-				}
+            }
+        }
 
-				return new BufferedImage(imgOrig.getColorModel(), raster, imgOrig.isAlphaPremultiplied(), null);
+        return new BufferedImage(transformImg.getColorModel(), raster, transformImg.isAlphaPremultiplied(), null);
 
-				// double downsample = request.getDownsample();
+
+                // for (int i = 0; i < W; ++i) {
+                    // 		for (int j = 0; j < H; ++j) {
+                        // 			X = (int) Math.floor((transform[i][j][0] - transformRequest.getX()) / downsample);
+                        // 			Y = (int) Math.floor((transform[i][j][1] - transformRequest.getY()) / downsample);
+                        //             // if (0 <= X && X < rasterOrig.getWidth() && 0 <= Y && Y < rasterOrig.getHeight()) {
+                            //             pixel = rasterOrig.getDataElements(X, Y, pixel);
+                            //             raster.setDataElements(i, j, pixel);
+                            //             // }
+                            // 		}
+                            // }
+
+                            // return this.getWrappedServer().readBufferedImage(request);
+
+                        // int x = request.getX();
+                        // int y = request.getY();
+                        // int w = request.getWidth();
+                        // int h = request.getHeight();
+                        // int W = transform.length;
+                        // int H = transform[0].length;
+                        // for (int k = 0; k < 2; ++k) {
+                            // 		bounds[k][0] = Math.max(bounds[k][0], 0);
+                            // 		bounds[k][1] = Math.min(bounds[k][1], k == 0 ? wrappedServer.getWidth() : wrappedServer.getHeight());
+                            // }
+                            // var imgOrig = wrappedServer.readBufferedImage(transformRequest);
+
+                // double downsample = request.getDownsample();
 				//
         // var bounds = AwtTools.getBounds(request);
         // var boundsTransformed = this.transformInverse.createTransformedShape(bounds).getBounds();
@@ -214,7 +237,9 @@ public class TPSTransformServer extends AbstractTransformServer<TPSTransform> {
         // return new BufferedImage(img.getColorModel(), raster, img.isAlphaPremultiplied(), null);
     }
 
-    @Override protected AbstractTransformServer.AbstractTransformServerBuilder createServerBuilder() { return null; }
+    @Override protected TPSTransformServerBuilder createServerBuilder() {
+        return new TPSTransformServerBuilder(this.getMetadata(), this.getWrappedServer().getBuilder(), this.getTransform(), this.getRegion());
+    }
 
     // @Override protected AbstractTransformServer<TPSTransform>.AbstractTransformServerBuilder<TPSTransform> createServerBuilder() {
 		// 		return new AbstractTransformServer<TPSTransform>.AbstractTransformServerBuilder<TPSTransform>(this.getMetadata(), this.getWrappedServer().getBuilder(), this.getTransform()) {
@@ -224,4 +249,19 @@ public class TPSTransformServer extends AbstractTransformServer<TPSTransform> {
 		// 		};
 		// }
 
+}
+
+static class TPSTransformServerBuilder extends AbstractTransformServerBuilder<TPSTransform> {
+    TPSTransform transform;
+    ImageRegion region;
+
+    public TPSTransformServerBuilder(ImageServerMetadata metadata, ServerBuilder<BufferedImage> builder, TPSTransform transform, ImageRegion region) {
+        super(metadata, builder);
+        this.transform = transform;
+        this.region = region;
+    }
+
+    @Override protected TPSTransformServer buildOriginal() throws Exception {
+        return new TPSTransformServer(this.builder.build(), this.transform, this.region);
+    }
 }

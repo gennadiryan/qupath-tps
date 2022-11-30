@@ -17,52 +17,14 @@ import qupath.lib.regions.RegionRequest;
 
 
 public abstract class AbstractTransformServer<T> extends AbstractImageServer<BufferedImage> {
-    abstract class AbstractTransformServerBuilder<T> implements ServerBuilder<BufferedImage> {
-        private ImageServerMetadata metadata;
-        protected ServerBuilder<BufferedImage> builder;
-    		protected T transform;
-
-    		public AbstractTransformServerBuilder(ImageServerMetadata metadata, ServerBuilder<BufferedImage> builder, T transform) {
-    				this.metadata = metadata;
-    				this.builder = builder;
-    				this.transform = transform;
-    		}
-
-        protected ImageServerMetadata getMetadata() {
-            return this.metadata;
-        }
-
-    		@Override public Collection<URI> getURIs() {
-    				return this.builder.getURIs();
-    		}
-
-    		@Override public ServerBuilder<BufferedImage> updateURIs(Map<URI, URI> updateMap) {
-    				this.builder = this.builder.updateURIs(updateMap);
-    				return this;
-    		}
-
-        @Override public ImageServer<BufferedImage> build() throws Exception {
-            var server = this.buildOriginal();
-            if (server == null)
-                return null;
-            if (this.metadata != null)
-                server.setMetadata(metadata);
-            return server;
-        }
-
-        protected abstract AbstractTransformServer<T> buildOriginal() throws Exception;
-
-
-    }
-
     private ImageServer<BufferedImage> server;
-		private T transform;
+    private T transform;
 
-		public AbstractTransformServer(ImageServer<BufferedImage> server, T transform) {
-				super(server.getImageClass());
+    public AbstractTransformServer(ImageServer<BufferedImage> server, T transform) {
+        super(server.getImageClass());
         this.server = server;
-				this.transform = transform;
-		}
+        this.transform = transform;
+    }
 
     @Override protected String createID() {
         return UUID.randomUUID().toString();
@@ -78,13 +40,13 @@ public abstract class AbstractTransformServer<T> extends AbstractImageServer<Buf
         return this.getWrappedServer().getPath() + " (" + this.transform.toString() + ")";
     }
 
-		@Override public String getServerType() {
+    @Override public String getServerType() {
         return this.getWrappedServer().getServerType() + " (" + this.transform.toString() + ")";
     }
 
     public T getTransform() {
-				return this.transform;
-		}
+        return this.transform;
+    }
 
     @Override public Collection<URI> getURIs() {
         return this.getWrappedServer().getURIs();
@@ -94,5 +56,5 @@ public abstract class AbstractTransformServer<T> extends AbstractImageServer<Buf
         return this.server;
     }
 
-		@Override public abstract BufferedImage readBufferedImage(RegionRequest request) throws IOException;
+    @Override public abstract BufferedImage readBufferedImage(RegionRequest request) throws IOException;
 }

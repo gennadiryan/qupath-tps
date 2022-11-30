@@ -232,10 +232,10 @@ public class RealTransformServer extends AbstractTransformServer<TPSTransform> {
     }
 
 
-    @Override protected AbstractTransformServer<TPSTransform>.AbstractTransformServerBuilder<TPSTransform> createServerBuilder() {
-				return new AbstractTransformServer<TPSTransform>.AbstractTransformServerBuilder<TPSTransform>(this.getMetadata(), this.getWrappedServer().getBuilder(), this.getTransform()) {
+    @Override protected AbstractTransformServerBuilder<TPSTransform> createServerBuilder() {
+				return new AbstractTransformServerBuilder<TPSTransform>(this.getMetadata(), this.getWrappedServer().getBuilder()) {
 						@Override protected AbstractTransformServer<TPSTransform> buildOriginal() throws Exception {
-								return new RealTransformServer(this.builder.build(), this.transform);
+								return new RealTransformServer(this.builder.build(), RealTransformServer.this.getTransform());
 						}
 				};
 		}

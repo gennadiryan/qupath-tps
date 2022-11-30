@@ -335,10 +335,10 @@ public class AffineTransformServer extends AbstractTransformServer<AffineTransfo
     }
 
 
-    @Override protected AbstractTransformServer<AffineTransform>.AbstractTransformServerBuilder<AffineTransform> createServerBuilder() {
-				return new AbstractTransformServer<AffineTransform>.AbstractTransformServerBuilder<AffineTransform>(this.getMetadata(), this.getWrappedServer().getBuilder(), this.getTransform()) {
+    @Override protected AbstractTransformServerBuilder<AffineTransform> createServerBuilder() {
+				return new AbstractTransformServerBuilder<AffineTransform>(this.getMetadata(), this.getWrappedServer().getBuilder()) {
 						@Override protected AbstractTransformServer<AffineTransform> buildOriginal() throws Exception {
-								return new AffineTransformServer(this.builder.build(), this.transform);
+								return new AffineTransformServer(this.builder.build(), AffineTransformServer.this.getTransform());
 						}
 				};
 		}

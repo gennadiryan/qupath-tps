@@ -91,8 +91,8 @@ public class TPSTransform extends ThinplateSplineTransform {
         if (bounds.length != 2 || bounds[0].length != bounds[1].length || bounds[0].length * bounds[1].length == 0)
             return null;
 
-        int w = (int) Math.ceil(bounds[0][1] / downsample);
-        int h = (int) Math.ceil(bounds[1][1] / downsample);
+        int w = (int) Math.floor(bounds[0][1] / downsample);
+        int h = (int) Math.floor(bounds[1][1] / downsample);
 
         double[] src = new double[2];
         double[] dst = new double[2];
@@ -118,6 +118,8 @@ public class TPSTransform extends ThinplateSplineTransform {
         }
 
         for (int k = 0; k < 2; ++k) {
+            // newBounds[k][0] = (int) (downsample * Math.floor(newBounds[k][0] / downsample));
+            // newBounds[k][1] = (int) (downsample * Math.ceil(newBounds[k][1] / downsample));
             newBounds[k][1] -= newBounds[k][0] - 1;
             bounds[k] = newBounds[k];
         }
