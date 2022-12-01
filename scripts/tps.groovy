@@ -395,4 +395,5 @@ class TPSTool implements Runnable {
 }
 
 
-return TPSTool
+def gui = QPEx.getQuPath().getInstance()
+gui.installCommand("TPS Tool", new TPSTool(gui))
