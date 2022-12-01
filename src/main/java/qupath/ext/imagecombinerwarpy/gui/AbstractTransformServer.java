@@ -30,7 +30,11 @@ public abstract class AbstractTransformServer<T> extends AbstractImageServer<Buf
         return UUID.randomUUID().toString();
     }
 
-    @Override protected abstract AbstractTransformServerBuilder<T> createServerBuilder();
+    // TODO: fix this
+    // @Override protected abstract AbstractTransformServerBuilder<T> createServerBuilder();
+    @Override protected ServerBuilder<BufferedImage> createServerBuilder() {
+        return this.getWrappedServer().getBuilder();
+    }
 
     @Override public ImageServerMetadata getOriginalMetadata() {
         return this.getWrappedServer().getMetadata();

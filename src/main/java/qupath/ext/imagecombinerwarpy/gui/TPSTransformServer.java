@@ -107,19 +107,10 @@ public class TPSTransformServer extends AbstractTransformServer<TPSTransform> {
         return new BufferedImage(transformImg.getColorModel(), raster, transformImg.isAlphaPremultiplied(), null);
     }
 
-    @Override protected TPSTransformServerBuilder createServerBuilder() {
+    @Override protected ServerBuilder<BufferedImage> createServerBuilder() {
+        // TODO: fix this
+        // return null;
         // return new TPSTransformServerBuilder(this.getMetadata(), this.getWrappedServer().getBuilder());
-        return null;
-    }
-}
-
-class TPSTransformServerBuilder extends AbstractTransformServerBuilder<TPSTransform> {
-    public TPSTransformServerBuilder(ImageServerMetadata metadata, ServerBuilder<BufferedImage> builder) {
-        super(metadata, builder);
-    }
-
-    @Override protected TPSTransformServer buildOriginal() throws Exception {
-        // return new TPSTransformServer(this.builder.build(), this.transform, this.region);
-        return null;
+        return this.getWrappedServer().getBuilder();
     }
 }

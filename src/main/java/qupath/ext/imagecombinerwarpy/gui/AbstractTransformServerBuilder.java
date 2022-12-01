@@ -47,5 +47,9 @@ abstract class AbstractTransformServerBuilder<T> implements ServerBuilder<Buffer
         return server;
     }
 
-    protected abstract AbstractTransformServer<T> buildOriginal() throws Exception;
+    // TODO: fix this
+    // protected abstract AbstractTransformServer<T> buildOriginal() throws Exception;
+    protected ImageServer buildOriginal() throws Exception {
+        return this.builder.build();
+    }
 }
