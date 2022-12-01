@@ -45,46 +45,6 @@ public class TPSTransform extends ThinplateSplineTransform {
 
     public int[][][] getTransform(int[][] bounds) {
         return this.getTransformDownsampled(bounds, (double) 1);
-        // if (bounds[0].length != bounds[1].length || bounds[0].length * bounds[1].length == 0)
-        // 		return null;
-        // if (step == null) {
-        // 		step = new int[2];
-        // 		step[0] = 1;
-        // 		step[1] = 1;
-        // }
-        //
-        // int[][][] transform = new int[bounds[0][1] - bounds[0][0]][bounds[1][1] - bounds[1][0]][2];
-        //
-        // double[] src = new double[2];
-        // double[] dst = new double[2];
-        //
-        // int[] min = new double[2];
-        // int[] max = new double[2];
-        // int[][] boundsT = new int[2][2];
-        // boolean fst = true;
-        //
-        // for (int i = bounds[0][0]; i < bounds[0][0] + bounds[0][1]; i += step[0]) {
-        //     for (int j = bounds[1][0]; j < bounds[1][0] + bounds[1][1]; j += step[1]) {
-        //         dst[0] = (double) i;
-        //         dst[1] = (double) j;
-        //         this.apply(dst, src);
-        //         transform[i][j] = (int[]) src;
-        //
-        //         for (int k = 0; k < 2; ++k) {
-        //             boundsT[k][0] = transform[i][j][k] < boundsT[k][0] || fst ? transform[i][j][k] : boundsT[k][0];
-        //             boundsT[k][1] = transform[i][j][k] > boundsT[k][1] || fst ? transform[i][j][k] : boundsT[k][1];
-        //         }
-        //
-        //         fst = false;
-        //     }
-        // }
-        //
-        // for (int k = 0; k < 2; ++k) {
-        //     boundsT[k][1] -= boundsT[k][0] - 1;
-        //     bounds[k] = boundsT[k];
-        // }
-        //
-        // return transform;
     }
 
     public int[][][] getTransformDownsampled(int[][] bounds, double downsample) {
@@ -118,8 +78,6 @@ public class TPSTransform extends ThinplateSplineTransform {
         }
 
         for (int k = 0; k < 2; ++k) {
-            // newBounds[k][0] = (int) (downsample * Math.floor(newBounds[k][0] / downsample));
-            // newBounds[k][1] = (int) (downsample * Math.ceil(newBounds[k][1] / downsample));
             newBounds[k][1] -= newBounds[k][0] - 1;
             bounds[k] = newBounds[k];
         }

@@ -108,11 +108,16 @@ public class TPSTransformServer extends AbstractTransformServer<TPSTransform> {
     }
 
     @Override protected TPSTransformServerBuilder createServerBuilder() {
-        return new TPSTransformServerBuilder(this.getMetadata(), this.getWrappedServer().getBuilder());
+        // return new TPSTransformServerBuilder(this.getMetadata(), this.getWrappedServer().getBuilder());
+        return null;
     }
 }
 
-static class TPSTransformServerBuilder extends AbstractTransformServerBuilder<TPSTransform> {
+class TPSTransformServerBuilder extends AbstractTransformServerBuilder<TPSTransform> {
+    public TPSTransformServerBuilder(ImageServerMetadata metadata, ServerBuilder<BufferedImage> builder) {
+        super(metadata, builder);
+    }
+
     @Override protected TPSTransformServer buildOriginal() throws Exception {
         // return new TPSTransformServer(this.builder.build(), this.transform, this.region);
         return null;
